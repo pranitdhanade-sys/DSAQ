@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PDF Hub</title>
+  <style>
+    :root {
+      --bg-0: #0b1020;
+      --bg-1: #121a34;
+      --bg-2: #1b2852;
+      --txt-0: #f6f8ff;
+      --txt-1: #b8c3e2;
+      --pri: #7c9bff;
+      --pri-2: #9f74ff;
+      --ok: #4dd4ac;
+      --warn: #ffd166;
+      --danger: #ff6f91;
+      --card: rgba(255, 255, 255, 0.08);
+      --glass-border: rgba(255, 255, 255, 0.18);
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--txt-0);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      background:
+        radial-gradient(1200px 700px at -10% -10%, #273c80 0%, transparent 50%),
+        radial-gradient(1000px 650px at 110% 20%, #41295a 0%, transparent 45%),
+        linear-gradient(130deg, var(--bg-0), var(--bg-1) 45%, var(--bg-2));
+      overflow-x: hidden;
+    }
+
+    .glow {
+      position: fixed;
+      width: 440px;
+      height: 440px;
+      border-radius: 50%;
+      filter: blur(85px);
+      opacity: 0.35;
+      z-index: 0;
+      pointer-events: none;
+      animation: float 8s ease-in-out infinite;
+    }
+    .g1 { top: -90px; left: -80px; background: #60a5fa; }
+    .g2 { right: -100px; top: 20%; background: #a78bfa; animation-delay: -2s; }
+    .g3 { left: 20%; bottom: -140px; background: #2dd4bf; animation-delay: -4s; }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-20px) scale(1.07); }
+    }
+
+    .wrap {
+      position: relative;
+      z-index: 1;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px 18px 40px;
+    }
+
+    .topbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      font-size: 22px;
+      background: linear-gradient(145deg, var(--pri), var(--pri-2));
+      box-shadow: var(--shadow);
+    }
+
+    .title h1 {
+      margin: 0;
+      font-size: 1.15rem;
+      letter-spacing: 0.3px;
+    }
+    .title p {
+      margin: 2px 0 0;
+      color: var(--txt-1);
+      font-size: 0.9rem;
+    }
+
+    .stats {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .pill {
+      backdrop-filter: blur(8px);
+      background: var(--card);
+      border: 1px solid var(--glass-border);
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 0.83rem;
+      color: var(--txt-1);
+    }
+    .pill strong { color: var(--txt-0); }
+
+    .controls {
+      display: grid;
+      grid-template-columns: 1.7fr repeat(3, minmax(120px, 1fr));
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .field {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      backdrop-filter: blur(8px);
+      background: var(--card);
+      border: 1px solid var(--glass-border);
+      border-radius: 14px;
+      padding: 0 12px;
+      min-height: 46px;
+    }
+
+    .field input,
+    .field select {
+      width: 100%;
+      border: none;
+      outline: none;
+      background: transparent;
+      color: var(--txt-0);
+      font-size: 0.94rem;
+    }
+
+    .field input::placeholder { color: #95a4d4; }
+    .field option { color: #111; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 14px;
+    }
+
+    .card {
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 14px;
+      border-radius: var(--radius);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--glass-border);
+      background: linear-gradient(160deg, rgba(255, 255, 255, 0.12), rgba(255,255,255,0.06));
+      box-shadow: var(--shadow);
+      transform: translateY(8px) scale(0.98);
+      opacity: 0;
+      animation: in 500ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    }
+
+    .card::after {
+      content: "";
+      position: absolute;
+      inset: auto -30% -80% -30%;
+      height: 70%;
+      background: radial-gradient(circle, rgba(124,155,255,0.18), transparent 60%);
+      pointer-events: none;
+      transform: rotate(-6deg);
+    }
+
+    .card:hover {
+      transform: translateY(-4px) scale(1.01);
+      transition: transform 180ms ease;
+    }
+
+    @keyframes in {
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .doc-type {
+      font-size: 0.75rem;
+      border-radius: 999px;
+      padding: 4px 8px;
+      background: rgba(77, 212, 172, 0.16);
+      color: #9ff5df;
+      border: 1px solid rgba(77, 212, 172, 0.4);
+      white-space: nowrap;
+    }
+
+    .date {
+      font-size: 0.75rem;
+      color: var(--txt-1);
+      white-space: nowrap;
+    }
+
+    .name {
+      margin: 0;
+      font-size: 1rem;
+      line-height: 1.35;
+      min-height: 2.7em;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .path {
+      margin: 0;
+      font-size: 0.78rem;
+      color: #a7b5df;
+      word-break: break-all;
+      opacity: 0.95;
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      min-height: 26px;
+    }
+
+    .tag {
+      font-size: 0.72rem;
+      padding: 3px 8px;
+      border-radius: 999px;
+      color: #d7e0ff;
+      border: 1px solid rgba(159, 116, 255, 0.35);
+      background: rgba(159, 116, 255, 0.14);
+    }
+
+    .actions {
+      margin-top: 2px;
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn {
+      flex: 1;
+      border: none;
+      cursor: pointer;
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-weight: 600;
+      color: white;
+      background: linear-gradient(130deg, var(--pri), var(--pri-2));
+      box-shadow: 0 7px 18px rgba(124, 155, 255, 0.35);
+      transition: transform 130ms ease, box-shadow 130ms ease;
+    }
+
+    .btn:hover { transform: translateY(-2px); }
+    .btn.alt {
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.24);
+      box-shadow: none;
+      color: #dce6ff;
+    }
+
+    .empty {
+      grid-column: 1 / -1;
+      text-align: center;
+      color: var(--txt-1);
+      padding: 34px 18px;
+      border-radius: var(--radius);
+      border: 1px dashed rgba(255,255,255,0.28);
+      background: rgba(255,255,255,0.05);
+    }
+
+    @media (max-width: 940px) {
+      .controls { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 620px) {
+      .controls { grid-template-columns: 1fr; }
+      .topbar { align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <div class="glow g1"></div>
+  <div class="glow g2"></div>
+  <div class="glow g3"></div>
+
+  <main class="wrap">
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo">📚</div>
+        <div class="title">
+          <h1>PDF Hub</h1>
+          <p>Card-based viewer for PDF paths coming from MongoDB.</p>
+        </div>
+      </div>
+      <div class="stats">
+        <div class="pill">Total: <strong id="statTotal">0</strong></div>
+        <div class="pill">Visible: <strong id="statVisible">0</strong></div>
+      </div>
+    </header>
+
+    <section class="controls">
+      <label class="field">
+        <span>🔎</span>
+        <input id="search" type="text" placeholder="Search by title, tag, or path" />
+      </label>
+      <label class="field">
+        <span>📁</span>
+        <select id="filterType">
+          <option value="all">All Types</option>
+          <option value="notes">Notes</option>
+          <option value="assignment">Assignment</option>
+          <option value="paper">Paper</option>
+          <option value="book">Book</option>
+          <option value="other">Other</option>
+        </select>
+      </label>
+      <label class="field">
+        <span>↕️</span>
+        <select id="sortBy">
+          <option value="latest">Latest Upload</option>
+          <option value="oldest">Oldest Upload</option>
+          <option value="az">Title A-Z</option>
+          <option value="za">Title Z-A</option>
+        </select>
+      </label>
+      <button class="btn alt" id="refreshBtn" type="button">⟳ Refresh</button>
+    </section>
+
+    <section id="pdfGrid" class="grid" aria-live="polite"></section>
+  </main>
+
+  <script>
+    const state = {
+      raw: [],
+      filtered: []
+    };
+
+    const grid = document.getElementById("pdfGrid");
+    const searchInput = document.getElementById("search");
+    const filterType = document.getElementById("filterType");
+    const sortBy = document.getElementById("sortBy");
+    const statTotal = document.getElementById("statTotal");
+    const statVisible = document.getElementById("statVisible");
+    const refreshBtn = document.getElementById("refreshBtn");
+
+    // Supports common field names that upload pages usually store.
+    function normalizePdf(doc) {
+      const path = doc.path || doc.filePath || doc.pdfPath || doc.url || "";
+      return {
+        id: doc._id || crypto.randomUUID(),
+        title: doc.title || doc.name || path.split("/").pop() || "Untitled PDF",
+        type: (doc.type || doc.category || "other").toLowerCase(),
+        tags: Array.isArray(doc.tags) ? doc.tags : (doc.tags ? String(doc.tags).split(",") : []),
+        uploadedAt: doc.uploadedAt || doc.createdAt || new Date().toISOString(),
+        path,
+      };
+    }
+
+    async function fetchMongoBackedPdfs() {
+      // Primary: API route backed by MongoDB.
+      // Expected response format: [{ title, path/filePath, uploadedAt, tags, type }]
+      try {
+        const res = await fetch("/api/pdfs", { headers: { "Accept": "application/json" } });
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data)) return data.map(normalizePdf);
+          if (Array.isArray(data?.pdfs)) return data.pdfs.map(normalizePdf);
+        }
+      } catch (err) {
+        console.warn("/api/pdfs unavailable, trying local fallback", err);
+      }
+
+      // Fallback: if pdfupload page stores a local snapshot, use it.
+      try {
+        const local = JSON.parse(localStorage.getItem("pdfUploads") || "[]");
+        if (Array.isArray(local) && local.length) return local.map(normalizePdf);
+      } catch (err) {
+        console.warn("No local storage fallback", err);
+      }
+
+      // Demo placeholder (removed automatically once database starts returning data)
+      return [
+        { title: "Graph Theory Notes", path: "/uploads/graph-theory.pdf", type: "notes", tags: ["graph", "semester-5"], uploadedAt: "2026-03-31T10:12:00Z" },
+        { title: "DBMS Assignment 2", path: "/uploads/dbms-a2.pdf", type: "assignment", tags: ["dbms", "sql"], uploadedAt: "2026-04-02T09:00:00Z" },
+        { title: "AI Research Paper", path: "/uploads/attention-is-all-you-need.pdf", type: "paper", tags: ["ai", "nlp"], uploadedAt: "2026-02-15T11:33:00Z" },
+      ].map(normalizePdf);
+    }
+
+    function applyFilters() {
+      const q = searchInput.value.trim().toLowerCase();
+      const type = filterType.value;
+      const sort = sortBy.value;
+
+      let list = state.raw.filter((doc) => {
+        const inType = type === "all" || doc.type === type;
+        const hay = `${doc.title} ${doc.path} ${(doc.tags || []).join(" ")}`.toLowerCase();
+        const inSearch = !q || hay.includes(q);
+        return inType && inSearch;
+      });
+
+      list.sort((a, b) => {
+        if (sort === "latest") return new Date(b.uploadedAt) - new Date(a.uploadedAt);
+        if (sort === "oldest") return new Date(a.uploadedAt) - new Date(b.uploadedAt);
+        if (sort === "az") return a.title.localeCompare(b.title);
+        if (sort === "za") return b.title.localeCompare(a.title);
+        return 0;
+      });
+
+      state.filtered = list;
+      render();
+    }
+
+    function formatDate(iso) {
+      const d = new Date(iso);
+      if (Number.isNaN(d.getTime())) return "Unknown date";
+      return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+    }
+
+    function cardTemplate(doc, i) {
+      const safePath = doc.path || "#";
+      const tags = (doc.tags || []).slice(0, 4).map(tag => `<span class="tag">#${String(tag).trim()}</span>`).join("");
+      return `
+        <article class="card" style="animation-delay:${Math.min(i * 40, 320)}ms">
+          <div class="card-top">
+            <span class="doc-type">${doc.type || "other"}</span>
+            <span class="date">${formatDate(doc.uploadedAt)}</span>
+          </div>
+          <h3 class="name" title="${doc.title}">${doc.title}</h3>
+          <p class="path" title="${safePath}">${safePath}</p>
+          <div class="tags">${tags}</div>
+          <div class="actions">
+            <a class="btn" href="${safePath}" target="_blank" rel="noopener noreferrer">Open PDF</a>
+            <button class="btn alt" onclick="navigator.clipboard.writeText('${safePath.replace(/'/g, "\\'")}')">Copy Path</button>
+          </div>
+        </article>
+      `;
+    }
+
+    function render() {
+      statTotal.textContent = state.raw.length;
+      statVisible.textContent = state.filtered.length;
+
+      if (!state.filtered.length) {
+        grid.innerHTML = `<div class="empty">No PDFs matched your filters. Try clearing search or changing type.</div>`;
+        return;
+      }
+
+      grid.innerHTML = state.filtered.map(cardTemplate).join("");
+    }
+
+    async function loadData() {
+      refreshBtn.disabled = true;
+      refreshBtn.textContent = "Loading...";
+      state.raw = await fetchMongoBackedPdfs();
+      applyFilters();
+      refreshBtn.disabled = false;
+      refreshBtn.textContent = "⟳ Refresh";
+    }
+
+    [searchInput, filterType, sortBy].forEach(el => el.addEventListener("input", applyFilters));
+    refreshBtn.addEventListener("click", loadData);
+
+    loadData();
+  </script>
+</body>
+</html>
